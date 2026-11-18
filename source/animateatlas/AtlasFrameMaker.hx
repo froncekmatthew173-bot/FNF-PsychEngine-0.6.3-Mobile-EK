@@ -14,10 +14,10 @@ import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxFramesCollection;
 import flixel.graphics.frames.FlxFrame;
 import flixel.util.FlxColor;
-#if sys
+#if desktop
 import sys.FileSystem;
 import sys.io.File;
-#elseif js
+#else
 import js.html.FileSystem;
 import js.html.File;
 #end

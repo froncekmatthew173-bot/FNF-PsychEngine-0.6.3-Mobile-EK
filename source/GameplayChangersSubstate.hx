@@ -1,9 +1,9 @@
 package;
 
-#if DISCORD_ALLOWED
+#if desktop
 import Discord.DiscordClient;
 #end
-import openfl.text.TextField;
+import flash.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.display.FlxGridOverlay;
@@ -13,7 +13,7 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
 import flixel.FlxSubState;
-import openfl.text.TextField;
+import flash.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.util.FlxSave;
@@ -160,9 +160,6 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 		changeSelection();
 		reloadCheckboxes();
-
-		addTouchPad("LEFT_FULL", "A_B_C");
-		addTouchPadCamera();
 	}
 
 	var nextAccept:Int = 5;
@@ -293,7 +290,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 				}
 			}
 
-			if(touchPad.buttonC.justPressed || controls.RESET)
+			if(controls.RESET)
 			{
 				for (i in 0...optionsArray.length)
 				{

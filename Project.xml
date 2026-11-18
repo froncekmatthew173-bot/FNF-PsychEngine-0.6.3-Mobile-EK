@@ -141,10 +141,10 @@
 	<!-- <haxelib name="hxcpp-debug-server" if="desktop"/> -->
 	<haxelib name="extension-androidtools" if="android" />
 
-    <!--Set this to the engine you're using!-->
-    <define name="PSYCH" />
+        <!--Set this to the engine you're using!-->
+        <define name="PSYCH" />
 
-    <haxelib name="fnf-modcharting-tools" />
+        <haxelib name="fnf-modcharting-tools" />
 		
 	<!-- <haxelib name="markdown" /> -->
 	<!-- <haxelib name="HtmlParser" /> -->

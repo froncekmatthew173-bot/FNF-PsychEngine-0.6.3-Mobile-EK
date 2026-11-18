@@ -21,7 +21,7 @@ import flixel.graphics.FlxGraphic;
 import openfl.display.BitmapData;
 import haxe.Json;
 
-import openfl.media.Sound;
+import flash.media.Sound;
 
 using StringTools;
 
@@ -81,11 +81,6 @@ class Paths
 		}
 		// run the garbage collector for good measure lmfao
 		System.gc();
-		#if cpp
-		cpp.NativeGc.run(true);
-		#elseif hl
-		hl.Gc.major();
-		#end
 	}
 
 	// define the locally tracked assets
@@ -126,9 +121,6 @@ class Paths
 
 	public static function getPath(file:String, type:AssetType, ?library:Null<String> = null)
 	{
-		if (library == "mobile")
-			return getPreloadPath('mobile/$file');
-
 		if (library != null)
 			return getLibraryPath(file, library);
 
@@ -348,10 +340,7 @@ class Paths
 			if(!currentTrackedAssets.exists(modKey)) {
 				var newBitmap:BitmapData = BitmapData.fromFile(modKey);
 				var newGraphic:FlxGraphic = FlxGraphic.fromBitmapData(newBitmap, false, modKey);
-				if (newGraphic != null)
-					newGraphic.persist = true;
-				else
-					trace('smth up with the graphic ($key)');
+				newGraphic.persist = true;
 				currentTrackedAssets.set(modKey, newGraphic);
 			}
 			localTrackedAssets.push(modKey);
@@ -364,16 +353,13 @@ class Paths
 		if (OpenFlAssets.exists(path, IMAGE)) {
 			if(!currentTrackedAssets.exists(path)) {
 				var newGraphic:FlxGraphic = FlxG.bitmap.add(path, false, path);
-				if (newGraphic != null)
-					newGraphic.persist = true;
-				else
-					trace('smth up with the graphic ($key)');
+				newGraphic.persist = true;
 				currentTrackedAssets.set(path, newGraphic);
 			}
 			localTrackedAssets.push(path);
 			return currentTrackedAssets.get(path);
 		}
-		trace('oh no its returning null NOOOO ($key)');
+		trace('oh no its returning null NOOOO');
 		return null;
 	}
 
@@ -395,7 +381,7 @@ class Paths
 		// trace(gottenPath);
 		if(!currentTrackedSounds.exists(gottenPath))
 		#if MODS_ALLOWED
-			currentTrackedSounds.set(gottenPath, Sound.fromFile(gottenPath));
+			currentTrackedSounds.set(gottenPath, Sound.fromFile('./' + gottenPath));
 		#else
 		{
 			var folder:String = '';
@@ -410,7 +396,7 @@ class Paths
 
 	#if MODS_ALLOWED
 	inline static public function mods(key:String = '') {
-		return Sys.getCwd() + 'mods/' + key;
+		return 'mods/' + key;
 	}
 
 	inline static public function modsFont(key:String) {
@@ -469,7 +455,7 @@ class Paths
 				return fileToCheck;
 
 		}
-		return Sys.getCwd() + 'mods/' + key;
+		return 'mods/' + key;
 	}
 
 	public static var globalMods:Array<String> = [];
@@ -513,7 +499,7 @@ class Paths
 		var list:Array<String> = [];
 		var modsFolder:String = mods();
 		if(FileSystem.exists(modsFolder)) {
-			for (folder in Paths.readDirectory(modsFolder)) {
+			for (folder in FileSystem.readDirectory(modsFolder)) {
 				var path = haxe.io.Path.join([modsFolder, folder]);
 				if (sys.FileSystem.isDirectory(path) && !ignoreModFolders.contains(folder) && !list.contains(folder)) {
 					list.push(folder);
@@ -523,25 +509,4 @@ class Paths
 		return list;
 	}
 	#end
-
-	public static function readDirectory(directory:String):Array<String>
-	{
-		#if MODS_ALLOWED
-		return FileSystem.readDirectory(directory);
-		#else
-		var dirs:Array<String> = [];
-		for(dir in Assets.list().filter(folder -> folder.startsWith(directory)))
-		{
-			@:privateAccess
-			for(library in lime.utils.Assets.libraries.keys())
-			{
-				if(library != 'default' && Assets.exists('$library:$dir') && (!dirs.contains('$library:$dir') || !dirs.contains(dir)))
-					dirs.push('$library:$dir');
-				else if(Assets.exists(dir) && !dirs.contains(dir))
-					dirs.push(dir);
-			}
-		}
-		return dirs.map(dir -> dir.substr(dir.lastIndexOf("/") + 1));
-		#end
-	}
 }

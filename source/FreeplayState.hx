@@ -1,10 +1,10 @@
 package;
 
-#if DISCORD_ALLOWED
+#if desktop
 import Discord.DiscordClient;
 #end
 import editors.ChartingState;
-import openfl.text.TextField;
+import flash.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.display.FlxGridOverlay;
@@ -59,7 +59,7 @@ class FreeplayState extends MusicBeatState
 		PlayState.isStoryMode = false;
 		WeekData.reloadWeekFiles(false);
 
-		#if DISCORD_ALLOWED
+		#if desktop
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Menus", null);
 		#end
@@ -186,32 +186,23 @@ class FreeplayState extends MusicBeatState
 		textBG.alpha = 0.6;
 		add(textBG);
 
-		final buttonSpace:String = controls.mobileC ? 'X' : 'SPACE';
-		final buttonCtrl:String = controls.mobileC ? 'C' : 'CTRL';
-		final buttonReset:String = controls.mobileC ? 'Y' : 'RESET';
-
 		#if PRELOAD_ALL
-		var leText:String = 'Press $buttonSpace to listen to the Song / Press $buttonCtrl to open the Gameplay Changers Menu / Press $buttonReset to Reset your Score and Accuracy.';
+		var leText:String = "Press SPACE to listen to the Song / Press CTRL to open the Gameplay Changers Menu / Press RESET to Reset your Score and Accuracy.";
 		var size:Int = 16;
 		#else
-		var leText:String = 'Press $buttonCtrl to open the Gameplay Changers Menu / Press $buttonReset to Reset your Score and Accuracy.';
+		var leText:String = "Press CTRL to open the Gameplay Changers Menu / Press RESET to Reset your Score and Accuracy.";
 		var size:Int = 18;
 		#end
 		var text:FlxText = new FlxText(textBG.x, textBG.y + 4, FlxG.width, leText, size);
 		text.setFormat(Paths.font("vcr.ttf"), size, FlxColor.WHITE, RIGHT);
 		text.scrollFactor.set();
 		add(text);
-
-        addTouchPad("LEFT_FULL", "A_B_C_X_Y_Z");
-
 		super.create();
 	}
 
 	override function closeSubState() {
 		changeSelection(0, false);
 		persistentUpdate = true;
-		removeTouchPad();
-		addTouchPad("LEFT_FULL", "A_B_C_X_Y_Z");
 		super.closeSubState();
 	}
 
@@ -274,11 +265,11 @@ class FreeplayState extends MusicBeatState
 		var upP = controls.UI_UP_P;
 		var downP = controls.UI_DOWN_P;
 		var accepted = controls.ACCEPT;
-		var space = touchPad.buttonX.justPressed || FlxG.keys.justPressed.SPACE;
-		var ctrl = touchPad.buttonC.justPressed || FlxG.keys.justPressed.CONTROL;
+		var space = FlxG.keys.justPressed.SPACE;
+		var ctrl = FlxG.keys.justPressed.CONTROL;
 
 		var shiftMult:Int = 1;
-		if(touchPad.buttonZ.pressed || FlxG.keys.pressed.SHIFT) shiftMult = 3;
+		if(FlxG.keys.pressed.SHIFT) shiftMult = 3;
 
 		if(songs.length > 1)
 		{
@@ -332,7 +323,7 @@ class FreeplayState extends MusicBeatState
 
 		if(ctrl)
 		{
-			touchPad.active = touchPad.visible = persistentUpdate = false;
+			persistentUpdate = false;
 			openSubState(new GameplayChangersSubstate());
 		}
 		else if(space)
@@ -386,7 +377,7 @@ class FreeplayState extends MusicBeatState
 				colorTween.cancel();
 			}
 			
-			if (touchPad.buttonZ.pressed || FlxG.keys.pressed.SHIFT){
+			if (FlxG.keys.pressed.SHIFT){
 				LoadingState.loadAndSwitchState(new ChartingState());
 			}else{
 				LoadingState.loadAndSwitchState(new PlayState());
@@ -396,9 +387,9 @@ class FreeplayState extends MusicBeatState
 					
 			destroyFreeplayVocals();
 		}
-		else if(touchPad.buttonY.justPressed || controls.RESET)
+		else if(controls.RESET)
 		{
-			touchPad.active = touchPad.visible = persistentUpdate = false;
+			persistentUpdate = false;
 			openSubState(new ResetScoreSubState(songs[curSelected].songName, curDifficulty, songs[curSelected].songCharacter));
 			FlxG.sound.play(Paths.sound('scrollMenu'));
 		}

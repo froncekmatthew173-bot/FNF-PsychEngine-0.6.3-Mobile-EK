@@ -1,9 +1,9 @@
 package editors;
 
-#if DISCORD_ALLOWED
+#if desktop
 import Discord.DiscordClient;
 #end
-import openfl.geom.Rectangle;
+import flash.geom.Rectangle;
 import haxe.Json;
 import haxe.format.JsonParser;
 import haxe.io.Bytes;
@@ -49,7 +49,7 @@ import openfl.utils.ByteArray;
 
 using StringTools;
 #if sys
-import openfl.media.Sound;
+import flash.media.Sound;
 import sys.FileSystem;
 import sys.io.File;
 #end
@@ -231,7 +231,7 @@ class ChartingState extends MusicBeatState
 
 		// Paths.clearMemory();
 
-		#if DISCORD_ALLOWED
+		#if desktop
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("Chart Editor", StringTools.replace(_song.song, '-', ' '));
 		#end
@@ -338,18 +338,7 @@ class ChartingState extends MusicBeatState
 		UI_box.y = 25;
 		UI_box.scrollFactor.set();
 
-		text = (controls.mobileC) ? 
-		"Up/Down - Change Conductor's strum time
-		\nLeft/Right - Go to the previous/next section
-		\nG - Reset Song Playback Rate
-		\nHold Y to move 4x faster
-		\nHold F and touch on an arrow to select it
-		\nV/D - Zoom in/out
-		\n
-		\nC - Test your chart inside Chart Editor
-		\nA - Play your chart
-		\nUp/Down (Right Side) - Decrease/Increase Note Sustain Length
-		\nX - Stop/Resume song" :
+		text =
 		"W/S or Mouse Wheel - Change Conductor's strum time
 		\nA/D - Go to the previous/next section
 		\nLeft/Right - Change Snap
@@ -401,7 +390,6 @@ class ChartingState extends MusicBeatState
 		add(zoomTxt);
 
 		updateGrid();
-		addTouchPad("LEFT_FULL", "CHART_EDITOR");
 		super.create();
 	}
 
@@ -521,7 +509,7 @@ class ChartingState extends MusicBeatState
 		for (i in 0...directories.length) {
 			var directory:String = directories[i];
 			if(FileSystem.exists(directory)) {
-				for (file in Paths.readDirectory(directory)) {
+				for (file in FileSystem.readDirectory(directory)) {
 					var path = haxe.io.Path.join([directory, file]);
 					if (!FileSystem.isDirectory(path) && file.endsWith('.json')) {
 						var charToCheck:String = file.substr(0, file.length - 5);
@@ -581,7 +569,7 @@ class ChartingState extends MusicBeatState
 		for (i in 0...directories.length) {
 			var directory:String = directories[i];
 			if(FileSystem.exists(directory)) {
-				for (file in Paths.readDirectory(directory)) {
+				for (file in FileSystem.readDirectory(directory)) {
 					var path = haxe.io.Path.join([directory, file]);
 					if (!FileSystem.isDirectory(path) && file.endsWith('.json')) {
 						var stageToCheck:String = file.substr(0, file.length - 5);
@@ -965,7 +953,7 @@ class ChartingState extends MusicBeatState
 		for (i in 0...directories.length) {
 			var directory:String =  directories[i];
 			if(FileSystem.exists(directory)) {
-				for (file in Paths.readDirectory(directory)) {
+				for (file in FileSystem.readDirectory(directory)) {
 					var path = haxe.io.Path.join([directory, file]);
 					if (!FileSystem.isDirectory(path) && file.endsWith('.lua')) {
 						var fileToCheck:String = file.substr(0, file.length - 4);
@@ -1027,7 +1015,7 @@ class ChartingState extends MusicBeatState
 		for (i in 0...directories.length) {
 			var directory:String =  directories[i];
 			if(FileSystem.exists(directory)) {
-				for (file in Paths.readDirectory(directory)) {
+				for (file in FileSystem.readDirectory(directory)) {
 					var path = haxe.io.Path.join([directory, file]);
 					if (!FileSystem.isDirectory(path) && file != 'readme.txt' && file.endsWith('.txt')) {
 						var fileToCheck:String = file.substr(0, file.length - 4);
@@ -1188,7 +1176,7 @@ class ChartingState extends MusicBeatState
 	var metronomeStepper:FlxUINumericStepper;
 	var metronomeOffsetStepper:FlxUINumericStepper;
 	var disableAutoScrolling:FlxUICheckBox;
-	#if (desktop || mobile)
+	#if desktop
 	var waveformUseInstrumental:FlxUICheckBox;
 	var waveformUseVoices:FlxUICheckBox;
 	#end
@@ -1198,7 +1186,7 @@ class ChartingState extends MusicBeatState
 		var tab_group_chart = new FlxUI(null, UI_box);
 		tab_group_chart.name = 'Charting';
 
-		#if (desktop || mobile)
+		#if desktop
 		if (FlxG.save.data.chart_waveformInst == null) FlxG.save.data.chart_waveformInst = false;
 		if (FlxG.save.data.chart_waveformVoices == null) FlxG.save.data.chart_waveformVoices = false;
 
@@ -1340,7 +1328,7 @@ class ChartingState extends MusicBeatState
 		tab_group_chart.add(disableAutoScrolling);
 		tab_group_chart.add(metronomeStepper);
 		tab_group_chart.add(metronomeOffsetStepper);
-		#if (desktop || mobile)
+		#if desktop
 		tab_group_chart.add(waveformUseInstrumental);
 		tab_group_chart.add(waveformUseVoices);
 		#end
@@ -1579,68 +1567,6 @@ class ChartingState extends MusicBeatState
 		FlxG.watch.addQuick('daStep', curStep);
 
 
-		if (controls.mobileC) {
-		for (touch in FlxG.touches.list)
-		{
-			if (touch.x > gridBG.x
-				&& touch.x < gridBG.x + gridBG.width
-				&& touch.y > gridBG.y
-				&& FlxG.mouse.y < gridBG.y + (GRID_SIZE * getSectionBeats() * 4) * zoomList[curZoom])
-			{
-				dummyArrow.visible = true;
-				dummyArrow.x = Math.floor(touch.x / GRID_SIZE) * GRID_SIZE;
-				if (touchPad.buttonY.pressed || FlxG.keys.pressed.SHIFT)
-					dummyArrow.y = touch.y;
-				else
-				{
-					var gridmult = GRID_SIZE / (quantization / 16);
-					dummyArrow.y = Math.floor(touch.y / gridmult) * gridmult;
-				}
-			} else {
-				dummyArrow.visible = false;
-			}
-
-			if (touch.justPressed)
-			{
-				if (touch.overlaps(curRenderedNotes))
-				{
-					curRenderedNotes.forEachAlive(function(note:Note)
-					{
-						if (touch.overlaps(note))
-							{
-								if (touchPad.buttonF.pressed)
-								{
-									selectNote(note);
-								}
-								else if (FlxG.keys.pressed.ALT)
-								{
-									selectNote(note);
-									curSelectedNote[3] = noteTypeIntMap.get(currentType);
-									updateGrid();
-								}
-								else
-								{
-									//trace('tryin to delete note...');
-									deleteNote(note);
-								}
-							}
-					});
-				}
-				else if (!touchPad.buttonF.pressed)
-				{
-					if (touch.x > gridBG.x
-						&& touch.x < gridBG.x + gridBG.width
-						&& touch.y > gridBG.y
-						&& touch.y < gridBG.y + (GRID_SIZE * getSectionBeats() * 4) * zoomList[curZoom])
-					{
-						FlxG.log.add('added note');
-						addNote();
-					}
-				}
-			}
-		}
-		} else {
-
 		if (FlxG.mouse.x > gridBG.x
 			&& FlxG.mouse.x < gridBG.x + gridBG.width
 			&& FlxG.mouse.y > gridBG.y
@@ -1697,7 +1623,6 @@ class ChartingState extends MusicBeatState
 				}
 			}
 		}
-		}
 
 		var blockInput:Bool = false;
 		for (inputText in blockPressWhileTypingOn) {
@@ -1739,12 +1664,12 @@ class ChartingState extends MusicBeatState
 
 		if (!blockInput)
 		{
-			if (touchPad.buttonC.justPressed || FlxG.keys.justPressed.ESCAPE)
+			if (FlxG.keys.justPressed.ESCAPE)
 			{
 				autosaveSong();
 				LoadingState.loadAndSwitchState(new editors.EditorPlayState(sectionStartTime()));
 			}
-			if (touchPad.buttonA.justPressed || FlxG.keys.justPressed.ENTER)
+			if (FlxG.keys.justPressed.ENTER)
 			{
 				autosaveSong();
 				FlxG.mouse.visible = false;
@@ -1758,18 +1683,18 @@ class ChartingState extends MusicBeatState
 			}
 
 			if(curSelectedNote != null && curSelectedNote[1] > -1) {
-				if (touchPad.buttonDown2.justPressed || FlxG.keys.justPressed.E)
+				if (FlxG.keys.justPressed.E)
 				{
 					changeNoteSustain(Conductor.stepCrochet);
 				}
-				if (touchPad.buttonUp2.justPressed || FlxG.keys.justPressed.Q)
+				if (FlxG.keys.justPressed.Q)
 				{
 					changeNoteSustain(-Conductor.stepCrochet);
 				}
 			}
 
 
-			if (touchPad.buttonB.justPressed || FlxG.keys.justPressed.BACKSPACE) {
+			if (FlxG.keys.justPressed.BACKSPACE) {
 				PlayState.chartingMode = false;
 				MusicBeatState.switchState(new editors.MasterEditorMenu());
 				FlxG.sound.playMusic(Paths.music('freakyMenu'));
@@ -1777,17 +1702,17 @@ class ChartingState extends MusicBeatState
 				return;
 			}
 
-			if(touchPad.buttonZ.justPressed || (FlxG.keys.justPressed.Z && FlxG.keys.pressed.CONTROL)) {
+			if(FlxG.keys.justPressed.Z && FlxG.keys.pressed.CONTROL) {
 				undo();
 			}
 
 
 
-			if(touchPad.buttonV.justPressed || FlxG.keys.justPressed.Z && curZoom > 0 && !FlxG.keys.pressed.CONTROL) {
+			if(FlxG.keys.justPressed.Z && curZoom > 0 && !FlxG.keys.pressed.CONTROL) {
 				--curZoom;
 				updateZoom();
 			}
-			if(touchPad.buttonD.justPressed || FlxG.keys.justPressed.X && curZoom < zoomList.length-1) {
+			if(FlxG.keys.justPressed.X && curZoom < zoomList.length-1) {
 				curZoom++;
 				updateZoom();
 			}
@@ -1808,7 +1733,7 @@ class ChartingState extends MusicBeatState
 				}
 			}
 
-			if (touchPad.buttonX.justPressed || FlxG.keys.justPressed.SPACE)
+			if (FlxG.keys.justPressed.SPACE)
 			{
 				if (FlxG.sound.music.playing)
 				{
@@ -1865,17 +1790,17 @@ class ChartingState extends MusicBeatState
 
 
 
-			if ((FlxG.keys.pressed.W || FlxG.keys.pressed.S) || (touchPad.buttonUp.pressed || touchPad.buttonDown.pressed))
+			if (FlxG.keys.pressed.W || FlxG.keys.pressed.S)
 			{
 				FlxG.sound.music.pause();
 
 				var holdingShift:Float = 1;
 				if (FlxG.keys.pressed.CONTROL) holdingShift = 0.25;
-				else if (touchPad.buttonY.pressed || FlxG.keys.pressed.SHIFT) holdingShift = 4;
+				else if (FlxG.keys.pressed.SHIFT) holdingShift = 4;
 
 				var daTime:Float = 700 * FlxG.elapsed * holdingShift;
 
-				if (touchPad.buttonUp.pressed || FlxG.keys.pressed.W)
+				if (FlxG.keys.pressed.W)
 				{
 					FlxG.sound.music.time -= daTime;
 				}
@@ -1910,7 +1835,7 @@ class ChartingState extends MusicBeatState
 
 			var style = currentType;
 
-			if (touchPad.buttonY.pressed || FlxG.keys.pressed.SHIFT){
+			if (FlxG.keys.pressed.SHIFT){
 				style = 3;
 			}
 
@@ -2005,12 +1930,12 @@ class ChartingState extends MusicBeatState
 				}
 			}
 			var shiftThing:Int = 1;
-			if (touchPad.buttonY.pressed || FlxG.keys.pressed.SHIFT)
+			if (FlxG.keys.pressed.SHIFT)
 				shiftThing = 4;
 
-			if (touchPad.buttonRight.justPressed || FlxG.keys.justPressed.D)
+			if (FlxG.keys.justPressed.D)
 				changeSection(curSec + shiftThing);
-			if (touchPad.buttonLeft.justPressed || FlxG.keys.justPressed.A) {
+			if (FlxG.keys.justPressed.A) {
 				if(curSec <= 0) {
 					changeSection(_song.notes.length-1);
 				} else {
@@ -2057,7 +1982,7 @@ class ChartingState extends MusicBeatState
 			playbackSpeed -= 0.01;
 		if (!holdingShift && pressedRB || holdingShift && holdingRB)
 			playbackSpeed += 0.01;
-		if (touchPad.buttonG.justPressed || (FlxG.keys.pressed.ALT && (pressedLB || pressedRB || holdingLB || holdingRB)))
+		if (FlxG.keys.pressed.ALT && (pressedLB || pressedRB || holdingLB || holdingRB))
 			playbackSpeed = 1;
 		//
 
@@ -2188,7 +2113,7 @@ class ChartingState extends MusicBeatState
 		gridLayer.clear();
 		gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 9, Std.int(GRID_SIZE * getSectionBeats() * 4 * zoomList[curZoom]));
 
-		#if (desktop || mobile)
+		#if desktop
 		if(FlxG.save.data.chart_waveformInst || FlxG.save.data.chart_waveformVoices) {
 			updateWaveform();
 		}
@@ -2243,7 +2168,7 @@ class ChartingState extends MusicBeatState
 	var waveformPrinted:Bool = true;
 	var wavData:Array<Array<Array<Float>>> = [[[0], [0]], [[0], [0]]];
 	function updateWaveform() {
-		#if (desktop || mobile)
+		#if desktop
 		if(waveformPrinted) {
 			waveformSprite.makeGraphic(Std.int(GRID_SIZE * 8), Std.int(gridBG.height), 0x00FFFFFF);
 			waveformSprite.pixels.fillRect(new Rectangle(0, 0, gridBG.width, gridBG.height), 0x00FFFFFF);
@@ -3058,15 +2983,11 @@ class ChartingState extends MusicBeatState
 
 		if ((data != null) && (data.length > 0))
 		{
-			#if mobile
-			StorageUtil.saveContent(Paths.formatToSongPath(_song.song) + '.json', data.trim());
-			#else
 			_file = new FileReference();
 			_file.addEventListener(Event.COMPLETE, onSaveComplete);
 			_file.addEventListener(Event.CANCEL, onSaveCancel);
 			_file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
 			_file.save(data.trim(), Paths.formatToSongPath(_song.song) + ".json");
-			#end
 		}
 	}
 
@@ -3089,15 +3010,11 @@ class ChartingState extends MusicBeatState
 
 		if ((data != null) && (data.length > 0))
 		{
-			#if mobile
-			StorageUtil.saveContent('events.json', data.trim());
-			#else
 			_file = new FileReference();
 			_file.addEventListener(Event.COMPLETE, onSaveComplete);
 			_file.addEventListener(Event.CANCEL, onSaveCancel);
 			_file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
 			_file.save(data.trim(), "events.json");
-			#end
 		}
 	}
 

@@ -1,15 +1,16 @@
 package;
 
+import modcharting.ModchartFuncs;
+import modcharting.NoteMovement;
+import modcharting.PlayfieldRenderer;
+
 import flixel.graphics.FlxGraphic;
-#if DISCORD_ALLOWED
+#if desktop
 import Discord.DiscordClient;
 #end
 import Section.SwagSection;
 import Song.SwagSong;
 import WiggleEffect.WiggleEffectType;
-import openfl.display.Shader;
-import openfl.filters.ShaderFilter;
-import Shaders;
 import flixel.FlxBasic;
 import flixel.FlxCamera;
 import flixel.FlxG;
@@ -78,14 +79,6 @@ import sys.io.File;
 import vlc.MP4Handler;
 #end
 
-import mobile.TouchButton;
-import mobile.TouchPad;
-import mobile.input.MobileInputID;
-
-import modcharting.ModchartFuncs;
-import modcharting.NoteMovement;
-import modcharting.PlayfieldRenderer;
-  
 using StringTools;
 
 class PlayState extends MusicBeatState
@@ -105,10 +98,6 @@ class PlayState extends MusicBeatState
 		['Sick!', 1], //From 90% to 99%
 		['Perfect!!', 1] //The value on this one isn't used actually, since Perfect is always "1"
 	];
-
-	public var camGameShaders:Array<ShaderEffect> = [];
-	public var camHUDShaders:Array<ShaderEffect> = [];
-	public var camOtherShaders:Array<ShaderEffect> = [];
 
 	//event variables
 	private var isCameraOnForcedPos:Bool = false;
@@ -231,7 +220,6 @@ class PlayState extends MusicBeatState
 	public var camHUD:FlxCamera;
 	public var camGame:FlxCamera;
 	public var camOther:FlxCamera;
-	public var luaTpadCam:FlxCamera;
 	public var cameraSpeed:Float = 1;
 
 	var dialogue:Array<String> = ['blah blah blah', 'coolswag'];
@@ -306,7 +294,7 @@ class PlayState extends MusicBeatState
 	public var opponentCameraOffset:Array<Float> = null;
 	public var girlfriendCameraOffset:Array<Float> = null;
 
-	#if DISCORD_ALLOWED
+	#if desktop
 	// Discord RPC variables
 	var storyDifficultyText:String = "";
 	var detailsText:String = "";
@@ -341,10 +329,8 @@ class PlayState extends MusicBeatState
 	// stores the last combo score objects in an array
 	public static var lastScore:Array<FlxSprite> = [];
 
-	public var luaTouchPad:TouchPad;
-
 	override public function create()
-	{ 
+	{
 		//trace('Playback Rate: ' + playbackRate);
 		Paths.clearStoredMemory();
 
@@ -411,15 +397,12 @@ class PlayState extends MusicBeatState
 		camGame = new FlxCamera();
 		camHUD = new FlxCamera();
 		camOther = new FlxCamera();
-		luaTpadCam = new FlxCamera();
 		camHUD.bgColor.alpha = 0;
 		camOther.bgColor.alpha = 0;
-		luaTpadCam.bgColor.alpha = 0;
 
 		FlxG.cameras.reset(camGame);
 		FlxG.cameras.add(camHUD, false);
 		FlxG.cameras.add(camOther, false);
-		FlxG.cameras.add(luaTpadCam, false);
 		grpNoteSplashes = new FlxTypedGroup<NoteSplash>();
 
 		FlxG.cameras.setDefaultDrawTarget(camGame, true);
@@ -434,7 +417,7 @@ class PlayState extends MusicBeatState
 		Conductor.mapBPMChanges(SONG);
 		Conductor.changeBPM(SONG.bpm);
 
-		#if DISCORD_ALLOWED
+		#if desktop
 		storyDifficultyText = CoolUtil.difficulties[storyDifficulty];
 
 		// String that contains the mode defined here so it isn't necessary to call changePresence for each mode
@@ -905,7 +888,7 @@ class PlayState extends MusicBeatState
 		{
 			if(FileSystem.exists(folder))
 			{
-				for (file in Paths.readDirectory(folder))
+				for (file in FileSystem.readDirectory(folder))
 				{
 					if(file.endsWith('.lua') && !filesPushed.contains(file))
 					{
@@ -1086,14 +1069,13 @@ class PlayState extends MusicBeatState
 		timeBarBG.sprTracker = timeBar;
 
 		strumLineNotes = new FlxTypedGroup<StrumNote>();
-	    add(strumLineNotes);
-  	
-        playfieldRenderer = new PlayfieldRenderer(strumLineNotes, notes, this);
-        playfieldRenderer.cameras = [camHUD];
-       add(playfieldRenderer);
-       add(grpNoteSplashes);
-      
+		add(strumLineNotes);
 
+		playfieldRenderer = new PlayfieldRenderer(strumLineNotes, notes, this);
+		playfieldRenderer.cameras = [camHUD];
+		add(playfieldRenderer);
+		add(grpNoteSplashes);      
+      
 		if(ClientPrefs.timeBarType == 'Song Name')
 		{
 			timeTxt.size = 24;
@@ -1108,15 +1090,6 @@ class PlayState extends MusicBeatState
 		playerStrums = new FlxTypedGroup<StrumNote>();
 
 		// startCountdown();
-
-		#if !android
-		addTouchPad("NONE", "P");
-		addTouchPadCamera();
-		touchPad.visible = true;
-		#end
-		addMobileControls();
-		mobileControls.onButtonDown.add(onButtonPress);
-		mobileControls.onButtonUp.add(onButtonRelease);
 
 		generateSong(SONG.song);
 
@@ -1292,7 +1265,7 @@ class PlayState extends MusicBeatState
 		{
 			if(FileSystem.exists(folder))
 			{
-				for (file in Paths.readDirectory(folder))
+				for (file in FileSystem.readDirectory(folder))
 				{
 					if(file.endsWith('.lua') && !filesPushed.contains(file))
 					{
@@ -1394,7 +1367,7 @@ class PlayState extends MusicBeatState
 
 		precacheList.set('alphabet', 'image');
 	
-		#if DISCORD_ALLOWED
+		#if desktop
 		// Updating Discord Rich Presence.
 		DiscordClient.changePresence(detailsText, SONG.song + " (" + storyDifficultyText + ")", iconP2.getCharacter());
 		#end
@@ -1404,12 +1377,12 @@ class PlayState extends MusicBeatState
 			FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
 			FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
 		}
-		
-        ModchartFuncs.loadLuaFunctions(); //add this if you want lua functions in scripts
-        //being used in psych engine as an example
+                
+                ModchartFuncs.loadLuaFunctions(); //add this if you want lua functions in scripts
 
-        callOnLuas('onCreatePost', []);
-        super.create();
+		callOnLuas('onCreatePost', []);
+
+		super.create();
 
 		cacheCountdown();
 		cachePopUpScore();
@@ -1620,94 +1593,6 @@ class PlayState extends MusicBeatState
 		}
 		#end
 	}
-
-
-	public function addShaderToCamera(cam:String,effect:Dynamic){//STOLE FROM ANDROMEDA
-		
-		switch(cam.toLowerCase()) {
-			case 'camhud' | 'hud':
-					camHUDShaders.push(effect);
-					var newCamEffects:Array<BitmapFilter>=[]; // IT SHUTS HAXE UP IDK WHY BUT WHATEVER IDK WHY I CANT JUST ARRAY<SHADERFILTER>
-					for(i in camHUDShaders){
-					  newCamEffects.push(new ShaderFilter(i.shader));
-					}
-					camHUD.setFilters(newCamEffects);
-			case 'camother' | 'other':
-					camOtherShaders.push(effect);
-					var newCamEffects:Array<BitmapFilter>=[]; // IT SHUTS HAXE UP IDK WHY BUT WHATEVER IDK WHY I CANT JUST ARRAY<SHADERFILTER>
-					for(i in camOtherShaders){
-					  newCamEffects.push(new ShaderFilter(i.shader));
-					}
-					camOther.setFilters(newCamEffects);
-			case 'camgame' | 'game':
-					camGameShaders.push(effect);
-					var newCamEffects:Array<BitmapFilter>=[]; // IT SHUTS HAXE UP IDK WHY BUT WHATEVER IDK WHY I CANT JUST ARRAY<SHADERFILTER>
-					for(i in camGameShaders){
-					  newCamEffects.push(new ShaderFilter(i.shader));
-					}
-					camGame.setFilters(newCamEffects);
-			default:
-				if(modchartSprites.exists(cam)) {
-					Reflect.setProperty(modchartSprites.get(cam),"shader",effect.shader);
-				} else if(modchartTexts.exists(cam)) {
-					Reflect.setProperty(modchartTexts.get(cam),"shader",effect.shader);
-				} else {
-					var OBJ = Reflect.getProperty(PlayState.instance,cam);
-					Reflect.setProperty(OBJ,"shader", effect.shader);
-				}		
-		}  
-  }
-
-  public function removeShaderFromCamera(cam:String,effect:ShaderEffect){
-
-	switch(cam.toLowerCase()) {
-			case 'camhud' | 'hud': 
-    camHUDShaders.remove(effect);
-    var newCamEffects:Array<BitmapFilter>=[];
-    for(i in camHUDShaders){
-      newCamEffects.push(new ShaderFilter(i.shader));
-    }
-    camHUD.setFilters(newCamEffects);
-			case 'camother' | 'other': 
-					camOtherShaders.remove(effect);
-					var newCamEffects:Array<BitmapFilter>=[];
-					for(i in camOtherShaders){
-					  newCamEffects.push(new ShaderFilter(i.shader));
-					}
-					camOther.setFilters(newCamEffects);
-			default: 
-				if(modchartSprites.exists(cam)) {
-					Reflect.setProperty(modchartSprites.get(cam),"shader",null);
-				} else if(modchartTexts.exists(cam)) {
-					Reflect.setProperty(modchartTexts.get(cam),"shader",null);
-				} else {
-					var OBJ = Reflect.getProperty(PlayState.instance,cam);
-					Reflect.setProperty(OBJ,"shader", null);
-				}	
-		} 
-  }
-	
-  public function clearShaderFromCamera(cam:String){
-
-		switch(cam.toLowerCase()) {
-			case 'camhud' | 'hud': 
-				camHUDShaders = [];
-				var newCamEffects:Array<BitmapFilter>=[];
-				camHUD.setFilters(newCamEffects);
-			case 'camother' | 'other': 
-				camOtherShaders = [];
-				var newCamEffects:Array<BitmapFilter>=[];
-				camOther.setFilters(newCamEffects);
-			case 'camgame' | 'game': 
-				camGameShaders = [];
-				var newCamEffects:Array<BitmapFilter>=[];
-				camGame.setFilters(newCamEffects);
-			default: 
-				camGameShaders = [];
-				var newCamEffects:Array<BitmapFilter>=[];
-				camGame.setFilters(newCamEffects);
-		}
-  }
 
 	public function getLuaObject(tag:String, text:Bool=true):FlxSprite {
 		if(modchartSprites.exists(tag)) return modchartSprites.get(tag);
@@ -2224,6 +2109,9 @@ class PlayState extends MusicBeatState
 
 			generateStaticArrows(0);
 			generateStaticArrows(1);
+
+                        NoteMovement.getDefaultStrumPos(this);
+
 			for (i in 0...playerStrums.length) {
 				setOnLuas('defaultPlayerStrumX' + i, playerStrums.members[i].x);
 				setOnLuas('defaultPlayerStrumY' + i, playerStrums.members[i].y);
@@ -2233,10 +2121,8 @@ class PlayState extends MusicBeatState
 				setOnLuas('defaultOpponentStrumY' + i, opponentStrums.members[i].y);
 				//if(ClientPrefs.middleScroll) opponentStrums.members[i].visible = false;
 			}
-            
-			NoteMovement.getDefaultStrumPos(this);
 
-			startedCountdown = mobileControls.instance.visible = true;
+			startedCountdown = true;
 			Conductor.songPosition = -Conductor.crochet * 5;
 			setOnLuas('startedCountdown', true);
 			callOnLuas('onCountdownStarted', []);
@@ -2403,7 +2289,7 @@ class PlayState extends MusicBeatState
 				daNote.visible = false;
 				daNote.ignoreNote = true;
 
-				//daNote.kill();
+				daNote.kill();
 				unspawnNotes.remove(daNote);
 				daNote.destroy();
 			}
@@ -2419,7 +2305,7 @@ class PlayState extends MusicBeatState
 				daNote.visible = false;
 				daNote.ignoreNote = true;
 
-				//daNote.kill();
+				daNote.kill();
 				notes.remove(daNote, true);
 				daNote.destroy();
 			}
@@ -2523,7 +2409,7 @@ class PlayState extends MusicBeatState
 				});
 		}
 
-		#if DISCORD_ALLOWED
+		#if desktop
 		// Updating Discord Rich Presence (with Time Left)
 		DiscordClient.changePresence(detailsText, SONG.song + " (" + storyDifficultyText + ")", iconP2.getCharacter(), true, songLength);
 		#end
@@ -2930,7 +2816,7 @@ class PlayState extends MusicBeatState
 			paused = false;
 			callOnLuas('onResume', []);
 
-			#if DISCORD_ALLOWED
+			#if desktop
 			if (startTimer != null && startTimer.finished)
 			{
 				DiscordClient.changePresence(detailsText, SONG.song + " (" + storyDifficultyText + ")", iconP2.getCharacter(), true, songLength - Conductor.songPosition - ClientPrefs.noteOffset);
@@ -2947,7 +2833,7 @@ class PlayState extends MusicBeatState
 
 	override public function onFocus():Void
 	{
-		#if DISCORD_ALLOWED
+		#if desktop
 		if (health > 0 && !paused)
 		{
 			if (Conductor.songPosition > 0.0)
@@ -2966,7 +2852,7 @@ class PlayState extends MusicBeatState
 
 	override public function onFocusLost():Void
 	{
-		#if DISCORD_ALLOWED
+		#if desktop
 		if (health > 0 && !paused)
 		{
 			DiscordClient.changePresence(detailsPausedText, SONG.song + " (" + storyDifficultyText + ")", iconP2.getCharacter());
@@ -3160,7 +3046,7 @@ class PlayState extends MusicBeatState
 			botplayTxt.alpha = 1 - Math.sin((Math.PI * botplaySine) / 180);
 		}
 
-		if (#if android FlxG.android.justReleased.BACK #else touchPad.buttonP.justPressed #end || controls.PAUSE && startedCountdown && canPause)
+		if (controls.PAUSE && startedCountdown && canPause)
 		{
 			var ret:Dynamic = callOnLuas('onPause', [], false);
 			if(ret != FunkinLua.Function_Stop) {
@@ -3416,7 +3302,7 @@ class PlayState extends MusicBeatState
 						daNote.active = false;
 						daNote.visible = false;
 
-						//daNote.kill();
+						daNote.kill();
 						notes.remove(daNote, true);
 						daNote.destroy();
 					}
@@ -3473,12 +3359,12 @@ class PlayState extends MusicBeatState
 		openSubState(new PauseSubState(boyfriend.getScreenPosition().x, boyfriend.getScreenPosition().y));
 		//}
 
-		#if DISCORD_ALLOWED
+		#if desktop
 		DiscordClient.changePresence(detailsPausedText, SONG.song + " (" + storyDifficultyText + ")", iconP2.getCharacter());
 		#end
 	}
 
-	public function openChartEditor()
+	function openChartEditor()
 	{
 		persistentUpdate = false;
 		paused = true;
@@ -3486,7 +3372,7 @@ class PlayState extends MusicBeatState
 		MusicBeatState.switchState(new ChartingState());
 		chartingMode = true;
 
-		#if DISCORD_ALLOWED
+		#if desktop
 		DiscordClient.changePresence("Chart Editor", null, null, true);
 		#end
 	}
@@ -3517,7 +3403,7 @@ class PlayState extends MusicBeatState
 
 				// MusicBeatState.switchState(new GameOverState(boyfriend.getScreenPosition().x, boyfriend.getScreenPosition().y));
 
-				#if DISCORD_ALLOWED
+				#if desktop
 				// Game Over doesn't get his own variable because it's only used here
 				DiscordClient.changePresence("Game Over - " + detailsText, SONG.song + " (" + storyDifficultyText + ")", iconP2.getCharacter());
 				#end
@@ -4043,7 +3929,6 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		mobileControls.instance.visible = #if !android touchPad.visible = #end false;
 		timeBarBG.visible = false;
 		timeBar.visible = false;
 		timeTxt.visible = false;
@@ -4199,7 +4084,7 @@ class PlayState extends MusicBeatState
 			daNote.active = false;
 			daNote.visible = false;
 
-			//daNote.kill();
+			daNote.kill();
 			notes.remove(daNote, true);
 			daNote.destroy();
 		}
@@ -4286,7 +4171,6 @@ class PlayState extends MusicBeatState
 			pixelShitPart2 = '-pixel';
 		}
 
-		if (ClientPrefs.popUpRating) {
 		rating.loadGraphic(Paths.image(pixelShitPart1 + daRating.image + pixelShitPart2));
 		rating.cameras = [camHUD];
 		rating.screenCenter();
@@ -4431,7 +4315,6 @@ class PlayState extends MusicBeatState
 			},
 			startDelay: Conductor.crochet * 0.002 / playbackRate
 		});
-		}
 	}
 
 	public var strumsBlocked:Array<Bool> = [];
@@ -4476,7 +4359,7 @@ class PlayState extends MusicBeatState
 					{
 						for (doubleNote in pressNotes) {
 							if (Math.abs(doubleNote.strumTime - epicNote.strumTime) < 1) {
-								//doubleNote.kill();
+								doubleNote.kill();
 								notes.remove(doubleNote, true);
 								doubleNote.destroy();
 							} else
@@ -4565,118 +4448,6 @@ class PlayState extends MusicBeatState
 		return -1;
 	}
 
-	private function onButtonPress(button:TouchButton):Void
-	{
-		var buttonCode:Int = (button.IDs[0].toString().startsWith('NOTE')) ? button.IDs[0] : button.IDs[1];
-
-		if (!cpuControlled && startedCountdown && !paused && buttonCode > -1 && button.justPressed)
-		{
-			if (!boyfriend.stunned && generatedMusic && !endingSong)
-			{
-				// more accurate hit time for the ratings?
-				var lastTime:Float = Conductor.songPosition;
-				Conductor.songPosition = FlxG.sound.music.time;
-
-				var canMiss:Bool = !ClientPrefs.ghostTapping;
-
-				// heavily based on my own code LOL if it aint broke dont fix it
-				var pressNotes:Array<Note> = [];
-				// var notesDatas:Array<Int> = [];
-				var notesStopped:Bool = false;
-
-				var sortedNotesList:Array<Note> = [];
-				notes.forEachAlive(function(daNote:Note)
-				{
-					if (strumsBlocked[daNote.noteData] != true
-						&& daNote.canBeHit
-						&& daNote.mustPress
-						&& !daNote.tooLate
-						&& !daNote.wasGoodHit
-						&& !daNote.isSustainNote
-						&& !daNote.blockHit)
-					{
-						if (daNote.noteData == buttonCode)
-						{
-							sortedNotesList.push(daNote);
-							// notesDatas.push(daNote.noteData);
-						}
-						canMiss = true;
-					}
-				});
-				sortedNotesList.sort(sortHitNotes);
-
-				if (sortedNotesList.length > 0)
-				{
-					for (epicNote in sortedNotesList)
-					{
-						for (doubleNote in pressNotes)
-						{
-							if (Math.abs(doubleNote.strumTime - epicNote.strumTime) < 1)
-							{
-								// doubleNote.kill();
-								notes.remove(doubleNote, true);
-								doubleNote.destroy();
-							}
-							else
-								notesStopped = true;
-						}
-
-						// eee jack detection before was not super good
-						if (!notesStopped)
-						{
-							goodNoteHit(epicNote);
-							pressNotes.push(epicNote);
-						}
-					}
-				}
-				else
-				{
-					callOnLuas('onGhostTap', [buttonCode]);
-					if (canMiss)
-					{
-						noteMissPress(buttonCode);
-					}
-				}
-
-				// I dunno what you need this for but here you go
-				//									- Shubs
-
-				// Shubs, this is for the "Just the Two of Us" achievement lol
-				//									- Shadow Mario
-				keysPressed[buttonCode] = true;
-
-				// more accurate hit time for the ratings? part 2 (Now that the calculations are done, go back to the time it was before for not causing a note stutter)
-				Conductor.songPosition = lastTime;
-			}
-
-			var spr:StrumNote = playerStrums.members[buttonCode];
-			if (strumsBlocked[buttonCode] != true && spr != null && spr.animation.curAnim.name != 'confirm')
-			{
-				spr.playAnim('pressed');
-				spr.resetAnim = 0;
-			}
-			callOnLuas('onKeyPress', [buttonCode]);
-			callOnLuas('onButtonPress', [buttonCode]);
-		}
-	}
-
-	private function onButtonRelease(button:TouchButton):Void
-	{
-		var buttonCode:Int = (button.IDs[0].toString().startsWith('NOTE')) ? button.IDs[0] : button.IDs[1];
-
-		if (!cpuControlled && startedCountdown && !paused && buttonCode > -1)
-		{
-			var spr:StrumNote = playerStrums.members[buttonCode];
-			if (spr != null)
-			{
-				spr.playAnim('static');
-				spr.resetAnim = 0;
-			}
-			callOnLuas('onKeyRelease', [buttonCode]);
-			callOnLuas('onButtonRelease', [buttonCode]);
-		}
-	}
-
 	// Hold notes
 	private function keyShit():Void
 	{
@@ -4754,7 +4525,7 @@ class PlayState extends MusicBeatState
 		//Dupe note remove
 		notes.forEachAlive(function(note:Note) {
 			if (daNote != note && daNote.mustPress && daNote.noteData == note.noteData && daNote.isSustainNote == note.isSustainNote && Math.abs(daNote.strumTime - note.strumTime) < 1) {
-				//note.kill();
+				note.kill();
 				notes.remove(note, true);
 				note.destroy();
 			}
@@ -4883,7 +4654,7 @@ class PlayState extends MusicBeatState
 
 		if (!note.isSustainNote)
 		{
-			//note.kill();
+			note.kill();
 			notes.remove(note, true);
 			note.destroy();
 		}
@@ -4920,7 +4691,7 @@ class PlayState extends MusicBeatState
 				note.wasGoodHit = true;
 				if (!note.isSustainNote)
 				{
-					//note.kill();
+					note.kill();
 					notes.remove(note, true);
 					note.destroy();
 				}
@@ -4990,7 +4761,7 @@ class PlayState extends MusicBeatState
 
 			if (!note.isSustainNote)
 			{
-				//note.kill();
+				note.kill();
 				notes.remove(note, true);
 				note.destroy();
 			}
@@ -5553,99 +5324,4 @@ class PlayState extends MusicBeatState
 
 	var curLight:Int = -1;
 	var curLightEvent:Int = -1;
-
-	public function makeLuaTouchPad(DPadMode:String, ActionMode:String) {
-		if(members.contains(luaTouchPad)) return;
-
-		if(!variables.exists("luaTouchPad"))
-			variables.set("luaTouchPad", luaTouchPad);
-
-		luaTouchPad = new TouchPad(DPadMode, ActionMode, NONE);
-		luaTouchPad.alpha = ClientPrefs.controlsAlpha;
-	}
-	
-	public function addLuaTouchPad() {
-		if(luaTouchPad == null || members.contains(luaTouchPad)) return;
-
-		var target:Dynamic = isDead ? GameOverSubstate.instance : PlayState.instance;
-		target.insert(target.members.length + 1, luaTouchPad);
-	}
-
-	public function addLuaTouchPadCamera() {
-		if(luaTouchPad != null)
-			luaTouchPad.cameras = [luaTpadCam];
-	}
-
-	public function removeLuaTouchPad() {
-		if (luaTouchPad != null) {
-			luaTouchPad.kill();
-			luaTouchPad.destroy();
-			remove(luaTouchPad);
-			luaTouchPad = null;
-		}
-	}
-
-	public function luaTouchPadPressed(button:Dynamic):Bool {
-		if(luaTouchPad != null) {
-			if(Std.isOfType(button, String))
-				return luaTouchPad.buttonPressed(MobileInputID.fromString(button));
-			else if(Std.isOfType(button, Array)){
-				var FUCK:Array<String> = button; // haxe said "You Can't Iterate On A Dyanmic Value Please Specificy Iterator or Iterable *insert nerd emoji*" so that's the only i foud to fix
-				var idArray:Array<MobileInputID> = [];
-				for(strId in FUCK)
-					idArray.push(MobileInputID.fromString(strId));
-				return luaTouchPad.anyPressed(idArray);
-			} else
-				return false;
-		}
-		return false;
-	}
-
-	public function luaTouchPadJustPressed(button:Dynamic):Bool {
-		if(luaTouchPad != null) {
-			if(Std.isOfType(button, String))
-				return luaTouchPad.buttonJustPressed(MobileInputID.fromString(button));
-			else if(Std.isOfType(button, Array)){
-				var FUCK:Array<String> = button;
-				var idArray:Array<MobileInputID> = [];
-				for(strId in FUCK)
-					idArray.push(MobileInputID.fromString(strId));
-				return luaTouchPad.anyJustPressed(idArray);
-			} else
-				return false;
-		}
-		return false;
-	}
-	
-	public function luaTouchPadJustReleased(button:Dynamic):Bool {
-		if(luaTouchPad != null) {
-			if(Std.isOfType(button, String))
-				return luaTouchPad.buttonJustReleased(MobileInputID.fromString(button));
-			else if(Std.isOfType(button, Array)){
-				var FUCK:Array<String> = button;
-				var idArray:Array<MobileInputID> = [];
-				for(strId in FUCK)
-					idArray.push(MobileInputID.fromString(strId));
-				return luaTouchPad.anyJustReleased(idArray);
-			} else
-				return false;
-		}
-		return false;
-	}
-
-	public function luaTouchPadReleased(button:Dynamic):Bool {
-		if(luaTouchPad != null) {
-			if(Std.isOfType(button, String))
-				return luaTouchPad.buttonJustReleased(MobileInputID.fromString(button));
-			else if(Std.isOfType(button, Array)){
-				var FUCK:Array<String> = button;
-				var idArray:Array<MobileInputID> = [];
-				for(strId in FUCK)
-					idArray.push(MobileInputID.fromString(strId));
-				return luaTouchPad.anyReleased(idArray);
-			} else
-				return false;
-		}
-		return false;
-	}
 }

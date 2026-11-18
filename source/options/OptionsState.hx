@@ -1,9 +1,9 @@
 package options;
 
-#if DISCORD_ALLOWED
+#if desktop
 import Discord.DiscordClient;
 #end
-import openfl.text.TextField;
+import flash.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.display.FlxGridOverlay;
@@ -13,7 +13,7 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
 import flixel.FlxSubState;
-import openfl.text.TextField;
+import flash.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.util.FlxSave;
@@ -29,16 +29,12 @@ using StringTools;
 
 class OptionsState extends MusicBeatState
 {
-	var options:Array<String> = ['Note Colors', 'Controls', 'Adjust Delay and Combo', 'Graphics', 'Visuals and UI', 'Gameplay', 'Mobile Options'];
+	var options:Array<String> = ['Note Colors', 'Controls', 'Adjust Delay and Combo', 'Graphics', 'Visuals and UI', 'Gameplay'];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private static var curSelected:Int = 0;
 	public static var menuBG:FlxSprite;
 
 	function openSelectedSubstate(label:String) {
-		if (label != "Adjust Delay and Combo"){
-			persistentUpdate = false;
-			removeTouchPad();
-		}
 		switch(label) {
 			case 'Note Colors':
 				openSubState(new options.NotesSubState());
@@ -52,8 +48,6 @@ class OptionsState extends MusicBeatState
 				openSubState(new options.GameplaySettingsSubState());
 			case 'Adjust Delay and Combo':
 				LoadingState.loadAndSwitchState(new options.NoteOffsetState());
-			case 'Mobile Options':
-				openSubState(new mobile.options.MobileOptionsSubState());
 		}
 	}
 
@@ -61,23 +55,17 @@ class OptionsState extends MusicBeatState
 	var selectorRight:Alphabet;
 
 	override function create() {
-		#if DISCORD_ALLOWED
+		#if desktop
 		DiscordClient.changePresence("Options Menu", null);
 		#end
 
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.color = 0xFFea71fd;
 		bg.updateHitbox();
+
 		bg.screenCenter();
 		bg.antialiasing = ClientPrefs.globalAntialiasing;
 		add(bg);
-
-		var tipText:FlxText = new FlxText(150, FlxG.height - 24, 0, 'Press C to Go Mobile Controls Menu', 16);
-		tipText.setFormat("VCR OSD Mono", 17, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		tipText.borderSize = 1.25;
-		tipText.scrollFactor.set();
-		tipText.antialiasing = ClientPrefs.globalAntialiasing;
-		add(tipText);
 
 		grpOptions = new FlxTypedGroup<Alphabet>();
 		add(grpOptions);
@@ -98,16 +86,11 @@ class OptionsState extends MusicBeatState
 		changeSelection();
 		ClientPrefs.saveSettings();
 
-		addTouchPad("UP_DOWN", "A_B_C");
-
 		super.create();
 	}
 
 	override function closeSubState() {
 		super.closeSubState();
-		persistentUpdate = true;
-		removeTouchPad();
-		addTouchPad("UP_DOWN", "A_B_C");
 		ClientPrefs.saveSettings();
 	}
 
@@ -122,18 +105,12 @@ class OptionsState extends MusicBeatState
 		}
 
 		if (controls.BACK) {
-			persistentUpdate = false;
 			FlxG.sound.play(Paths.sound('cancelMenu'));
 			MusicBeatState.switchState(new MainMenuState());
 		}
 
 		if (controls.ACCEPT) {
 			openSelectedSubstate(options[curSelected]);
-		}
-
-		if (touchPad != null && touchPad.buttonC.justPressed) {
-			touchPad.active = touchPad.visible = persistentUpdate = false;
-			openSubState(new mobile.MobileControlSelectSubState());
 		}
 	}
 	

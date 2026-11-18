@@ -1,6 +1,6 @@
 package editors;
 
-#if DISCORD_ALLOWED
+#if desktop
 import Discord.DiscordClient;
 #end
 import flixel.FlxG;
@@ -38,7 +38,7 @@ class MasterEditorMenu extends MusicBeatState
 	override function create()
 	{
 		FlxG.camera.bgColor = FlxColor.BLACK;
-		#if DISCORD_ALLOWED
+		#if desktop
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("Editors Main Menu", null);
 		#end
@@ -82,8 +82,6 @@ class MasterEditorMenu extends MusicBeatState
 		changeSelection();
 
 		FlxG.mouse.visible = false;
-
-		addTouchPad(#if MODS_ALLOWED "LEFT_FULL" #else "UP_DOWN" #end, "A_B");
 		super.create();
 	}
 

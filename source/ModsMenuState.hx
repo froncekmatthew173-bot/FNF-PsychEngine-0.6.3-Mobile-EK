@@ -1,9 +1,9 @@
 package;
 
-#if DISCORD_ALLOWED
+#if desktop
 import Discord.DiscordClient;
 #end
-import openfl.text.TextField;
+import flash.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.display.FlxGridOverlay;
@@ -22,7 +22,7 @@ import sys.FileSystem;
 import haxe.Json;
 import haxe.format.JsonParser;
 import openfl.display.BitmapData;
-import openfl.geom.Rectangle;
+import flash.geom.Rectangle;
 import flixel.ui.FlxButton;
 import flixel.FlxBasic;
 import sys.io.File;
@@ -70,7 +70,7 @@ class ModsMenuState extends MusicBeatState
 		Paths.clearUnusedMemory();
 		WeekData.setDirectoryFromWeek();
 
-		#if DISCORD_ALLOWED
+		#if desktop
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Menus", null);
 		#end
@@ -80,9 +80,7 @@ class ModsMenuState extends MusicBeatState
 		add(bg);
 		bg.screenCenter();
 
-		final buttonBack:String = controls.mobileC ? 'B' : 'BACK';
-
-		noModsTxt = new FlxText(0, 0, FlxG.width, 'NO MODS INSTALLED\nPRESS $buttonBack TO EXIT AND INSTALL A MOD', 48);
+		noModsTxt = new FlxText(0, 0, FlxG.width, "NO MODS INSTALLED\nPRESS BACK TO EXIT AND INSTALL A MOD", 48);
 		if(FlxG.random.bool(0.1)) noModsTxt.text += '\nBITCH.'; //meanie
 		noModsTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		noModsTxt.scrollFactor.set();
@@ -378,8 +376,6 @@ class ModsMenuState extends MusicBeatState
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 
 		FlxG.mouse.visible = true;
-
-		addTouchPad(!noModsTxt.visible ? "UP_DOWN" : "NONE", "B");
 
 		super.create();
 	}

@@ -1,6 +1,6 @@
 package editors;
 
-#if DISCORD_ALLOWED
+#if desktop
 import Discord.DiscordClient;
 #end
 import flixel.FlxG;
@@ -24,7 +24,7 @@ import MenuCharacter;
 import openfl.net.FileReference;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
-import openfl.net.FileFilter;
+import flash.net.FileFilter;
 import haxe.Json;
 #if sys
 import sys.io.File;
@@ -48,7 +48,7 @@ class MenuCharacterEditorState extends MusicBeatState
 			confirm_anim: 'M Dad Idle',
 			flipX: false
 		};
-		#if DISCORD_ALLOWED
+		#if desktop
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("Menu Character Editor", "Editting: " + characterFile.image);
 		#end
@@ -70,12 +70,9 @@ class MenuCharacterEditorState extends MusicBeatState
 		txtOffsets.alpha = 0.7;
 		add(txtOffsets);
 
-		final buttonSpace:String = controls.mobileC ? 'A' : 'Space';
-		final buttonShift:String = controls.mobileC ? 'C' : 'shift';
-
 		var tipText:FlxText = new FlxText(0, 540, FlxG.width,
-			'Arrow Keys - Change Offset (Hold $buttonShift for 10x speed)
-			\n$buttonSpace - Play \"Start Press\" animation (Boyfriend Character Type)', 16);
+			"Arrow Keys - Change Offset (Hold shift for 10x speed)
+			\nSpace - Play \"Start Press\" animation (Boyfriend Character Type)", 16);
 		tipText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER);
 		tipText.scrollFactor.set();
 		add(tipText);
@@ -83,8 +80,6 @@ class MenuCharacterEditorState extends MusicBeatState
 		addEditorBox();
 		FlxG.mouse.visible = true;
 		updateCharTypeBox();
-
-		addTouchPad("MENU_CHARACTER", "MENU_CHARACTER");
 
 		super.create();
 	}
@@ -249,7 +244,7 @@ class MenuCharacterEditorState extends MusicBeatState
 		char.animation.play('idle');
 		updateOffset();
 		
-		#if DISCORD_ALLOWED
+		#if desktop
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("Menu Character Editor", "Editting: " + characterFile.image);
 		#end
@@ -290,32 +285,32 @@ class MenuCharacterEditorState extends MusicBeatState
 			FlxG.sound.muteKeys = TitleState.muteKeys;
 			FlxG.sound.volumeDownKeys = TitleState.volumeDownKeys;
 			FlxG.sound.volumeUpKeys = TitleState.volumeUpKeys;
-			if(touchPad.buttonB.justPressed || FlxG.keys.justPressed.ESCAPE) {
+			if(FlxG.keys.justPressed.ESCAPE) {
 				MusicBeatState.switchState(new editors.MasterEditorMenu());
 				FlxG.sound.playMusic(Paths.music('freakyMenu'));
 			}
 
 			var shiftMult:Int = 1;
-			if(touchPad.buttonC.pressed || FlxG.keys.pressed.SHIFT) shiftMult = 10;
+			if(FlxG.keys.pressed.SHIFT) shiftMult = 10;
 
-			if(touchPad.buttonLeft.justPressed || FlxG.keys.justPressed.LEFT) {
+			if(FlxG.keys.justPressed.LEFT) {
 				characterFile.position[0] += shiftMult;
 				updateOffset();
 			}
-			if(touchPad.buttonRight.justPressed || FlxG.keys.justPressed.RIGHT) {
+			if(FlxG.keys.justPressed.RIGHT) {
 				characterFile.position[0] -= shiftMult;
 				updateOffset();
 			}
-			if(touchPad.buttonUp.justPressed || FlxG.keys.justPressed.UP) {
+			if(FlxG.keys.justPressed.UP) {
 				characterFile.position[1] += shiftMult;
 				updateOffset();
 			}
-			if(touchPad.buttonDown.justPressed || FlxG.keys.justPressed.DOWN) {
+			if(FlxG.keys.justPressed.DOWN) {
 				characterFile.position[1] -= shiftMult;
 				updateOffset();
 			}
 
-			if(touchPad.buttonA.justPressed || FlxG.keys.justPressed.SPACE && curTypeSelected == 1) {
+			if(FlxG.keys.justPressed.SPACE && curTypeSelected == 1) {
 				grpWeekCharacters.members[curTypeSelected].animation.play('confirm', true);
 			}
 		}
@@ -412,15 +407,11 @@ class MenuCharacterEditorState extends MusicBeatState
 			var splittedImage:Array<String> = imageInputText.text.trim().split('_');
 			var characterName:String = splittedImage[splittedImage.length-1].toLowerCase().replace(' ', '');
 
-			#if mobile
-			StorageUtil.saveContent(characterName /*GACHA HORROR REFERANCE!?!?!?!*/ + '.json', data);
-			#else
 			_file = new FileReference();
 			_file.addEventListener(Event.COMPLETE, onSaveComplete);
 			_file.addEventListener(Event.CANCEL, onSaveCancel);
 			_file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
 			_file.save(data, characterName + ".json");
-			#end
 		}
 	}
 

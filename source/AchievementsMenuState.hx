@@ -1,9 +1,9 @@
 package;
 
-#if DISCORD_ALLOWED
+#if desktop
 import Discord.DiscordClient;
 #end
-import openfl.text.TextField;
+import flash.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.display.FlxGridOverlay;
@@ -28,7 +28,7 @@ class AchievementsMenuState extends MusicBeatState
 	private var descText:FlxText;
 
 	override function create() {
-		#if DISCORD_ALLOWED
+		#if desktop
 		DiscordClient.changePresence("Achievements Menu", null);
 		#end
 
@@ -70,8 +70,6 @@ class AchievementsMenuState extends MusicBeatState
 		descText.borderSize = 2.4;
 		add(descText);
 		changeSelection();
-
-		addTouchPad("UP_DOWN", "B");
 
 		super.create();
 	}

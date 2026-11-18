@@ -27,7 +27,7 @@ import Type.ValueType;
 import Controls;
 import DialogueBoxPsych;
 
-#if DISCORD_ALLOWED
+#if desktop
 import Discord;
 #end
 
@@ -53,8 +53,8 @@ class EditorLua {
 		var result:Dynamic = LuaL.dofile(lua, script);
 		var resultStr:String = Lua.tostring(lua, result);
 		if(resultStr != null && result != 0) {
-			CoolUtil.showPopUp(resultStr, 'Error on .LUA script!');
-			//trace('Error on .LUA script! ' + resultStr);
+			lime.app.Application.current.window.alert(resultStr, 'Error on .LUA script!');
+			trace('Error on .LUA script! ' + resultStr);
 			lua = null;
 			return;
 		}
@@ -180,9 +180,8 @@ class EditorLua {
 			}
 		});
 
-		#if DISCORD_ALLOWED
 		Discord.DiscordClient.addLuaCallbacks(lua);
-                #end
+
 		call('onCreate', []);
 		#end
 	}

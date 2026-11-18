@@ -1,6 +1,6 @@
 package editors;
 
-#if DISCORD_ALLOWED
+#if desktop
 import Discord.DiscordClient;
 #end
 import flixel.FlxG;
@@ -23,7 +23,7 @@ import flixel.ui.FlxButton;
 import openfl.net.FileReference;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
-import openfl.net.FileFilter;
+import flash.net.FileFilter;
 import haxe.Json;
 import DialogueBoxPsych;
 import flixel.FlxCamera;
@@ -41,8 +41,21 @@ class DialogueCharacterEditorState extends MusicBeatState
 	var box:FlxSprite;
 	var daText:TypedAlphabet = null;
 
-	private static var TIP_TEXT_MAIN:String;
-	private static var TIP_TEXT_OFFSET:String;
+	private static var TIP_TEXT_MAIN:String =
+	'JKLI - Move camera (Hold Shift to move 4x faster)
+	\nQ/E - Zoom out/in
+	\nR - Reset Camera
+	\nH - Toggle Speech Bubble
+	\nSpace - Reset text';
+
+	private static var TIP_TEXT_OFFSET:String =
+	'JKLI - Move camera (Hold Shift to move 4x faster)
+	\nQ/E - Zoom out/in
+	\nR - Reset Camera
+	\nH - Toggle Ghosts
+	\nWASD - Move Looping animation offset (Red)
+	\nArrow Keys - Move Idle/Finished animation offset (Blue)
+	\nHold Shift to move offsets 10x faster';
 
 	var tipText:FlxText;
 	var offsetLoopText:FlxText;
@@ -110,32 +123,6 @@ class DialogueCharacterEditorState extends MusicBeatState
 		box.updateHitbox();
 		hudGroup.add(box);
 
-		TIP_TEXT_MAIN = (controls.mobileC) ?
-			'\nX - Reset Camera
-			\nY - Toggle Speech Bubble
-			\nA - Reset text'
-			:
-			'JKLI - Move camera (Hold Shift to move 4x faster)
-			\nQ/E - Zoom out/in
-			\nR - Reset Camera
-			\nH - Toggle Speech Bubble
-			\nSpace - Reset text';
-
-		TIP_TEXT_OFFSET = (controls.mobileC) ?
-			'\nX - Reset Camera
-			\nY - Toggle Ghosts
-			\nTop Arrow Keys - Move Looping animation offset (Red)
-			\nBottom Arrow Keys - Move Idle/Finished animation offset (Blue)
-			\nHold Z to move offsets 10x faster'
-			:
-			'JKLI - Move camera (Hold Shift to move 4x faster)
-			\nQ/E - Zoom out/in
-			\nR - Reset Camera
-			\nH - Toggle Ghosts
-			\nWASD - Move Looping animation offset (Red)
-			\nArrow Keys - Move Idle/Finished animation offset (Blue)
-			\nHold Shift to move offsets 10x faster';
-
 		tipText = new FlxText(10, 10, FlxG.width - 20, TIP_TEXT_MAIN, 8);
 		tipText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		tipText.cameras = [camHUD];
@@ -174,9 +161,6 @@ class DialogueCharacterEditorState extends MusicBeatState
 		addEditorBox();
 		FlxG.mouse.visible = true;
 		updateCharTypeBox();
-
-		addTouchPad("DIALOGUE_PORTRAIT", "DIALOGUE_PORTRAIT");
-		addTouchPadCamera();
 		
 		super.create();
 	}
@@ -469,13 +453,10 @@ class DialogueCharacterEditorState extends MusicBeatState
 			offsetIdleText.text = 'Idle: ' + animShit.idle_offsets;
 		}
 
-		final buttonW:String = controls.mobileC ? 'Up' : 'W';
-		final buttonS:String = controls.mobileC ? 'Down' : 'S';
-
 		curAnim = 0;
-		animText.text = 'Animation: ' + character.jsonFile.animations[curAnim].anim + ' (' + (curAnim + 1) +' / ' + character.jsonFile.animations.length + ') - Press $buttonW or $buttonS to scroll';
+		animText.text = 'Animation: ' + character.jsonFile.animations[curAnim].anim + ' (' + (curAnim + 1) +' / ' + character.jsonFile.animations.length + ') - Press W or S to scroll';
 
-		#if DISCORD_ALLOWED
+		#if desktop
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("Dialogue Character Editor", "Editting: " + character.jsonFile.image);
 		#end
@@ -548,7 +529,7 @@ class DialogueCharacterEditorState extends MusicBeatState
 			FlxG.sound.muteKeys = TitleState.muteKeys;
 			FlxG.sound.volumeDownKeys = TitleState.volumeDownKeys;
 			FlxG.sound.volumeUpKeys = TitleState.volumeUpKeys;
-			if(touchPad.buttonA.justPressed || FlxG.keys.justPressed.SPACE && UI_mainbox.selected_tab_id == 'Character') {
+			if(FlxG.keys.justPressed.SPACE && UI_mainbox.selected_tab_id == 'Character') {
 				character.playAnim(character.jsonFile.animations[curAnim].anim);
 				daText.resetDialogue();
 				updateTextBox();
@@ -557,7 +538,7 @@ class DialogueCharacterEditorState extends MusicBeatState
 			//lots of Ifs lol get trolled
 			var offsetAdd:Int = 1;
 			var speed:Float = 300;
-			if(touchPad.buttonZ.pressed || FlxG.keys.pressed.SHIFT) {
+			if(FlxG.keys.pressed.SHIFT) {
 				speed = 1200;
 				offsetAdd = 10;
 			}
@@ -577,8 +558,8 @@ class DialogueCharacterEditorState extends MusicBeatState
 			if(UI_mainbox.selected_tab_id == 'Animations' && curSelectedAnim != null && character.dialogueAnimations.exists(curSelectedAnim)) {
 				var moved:Bool = false;
 				var animShit:DialogueAnimArray = character.dialogueAnimations.get(curSelectedAnim);
-				var controlArrayLoop:Array<Bool> = [FlxG.keys.justPressed.A || touchPad.buttonLeft2.justPressed, FlxG.keys.justPressed.W || touchPad.buttonUp2.justPressed, FlxG.keys.justPressed.D || touchPad.buttonRight2.justPressed, FlxG.keys.justPressed.S || touchPad.buttonDown2.justPressed];
-				var controlArrayIdle:Array<Bool> = [FlxG.keys.justPressed.LEFT || touchPad.buttonLeft.justPressed, FlxG.keys.justPressed.UP || touchPad.buttonUp.justPressed, FlxG.keys.justPressed.RIGHT || touchPad.buttonRight.justPressed, FlxG.keys.justPressed.DOWN || touchPad.buttonDown.justPressed];
+				var controlArrayLoop:Array<Bool> = [FlxG.keys.justPressed.A, FlxG.keys.justPressed.W, FlxG.keys.justPressed.D, FlxG.keys.justPressed.S];
+				var controlArrayIdle:Array<Bool> = [FlxG.keys.justPressed.LEFT, FlxG.keys.justPressed.UP, FlxG.keys.justPressed.RIGHT, FlxG.keys.justPressed.DOWN];
 				for (i in 0...controlArrayLoop.length) {
 					if(controlArrayLoop[i]) {
 						if(i % 2 == 1) {
@@ -616,7 +597,7 @@ class DialogueCharacterEditorState extends MusicBeatState
 				camGame.zoom += elapsed * camGame.zoom;
 				if(camGame.zoom > 1) camGame.zoom = 1;
 			}
-			if(touchPad.buttonY.justPressed || FlxG.keys.justPressed.H) {
+			if(FlxG.keys.justPressed.H) {
 				if(UI_mainbox.selected_tab_id == 'Animations') {
 					currentGhosts++;
 					if(currentGhosts > 2) currentGhosts = 0;
@@ -629,7 +610,7 @@ class DialogueCharacterEditorState extends MusicBeatState
 					hudGroup.visible = !hudGroup.visible;
 				}
 			}
-			if(touchPad.buttonX.justPressed || FlxG.keys.justPressed.R) {
+			if(FlxG.keys.justPressed.R) {
 				camGame.zoom = 1;
 				mainGroup.setPosition(0, 0);
 				hudGroup.visible = true;
@@ -660,12 +641,9 @@ class DialogueCharacterEditorState extends MusicBeatState
 					
 					if(curAnim < 0) curAnim = character.jsonFile.animations.length - 1;
 					else if(curAnim >= character.jsonFile.animations.length) curAnim = 0;
-
-					final buttonW:String = controls.mobileC ? 'Up' : 'W';
-					final buttonS:String = controls.mobileC ? 'Down' : 'S';
 					
 					character.playAnim(character.jsonFile.animations[curAnim].anim);
-					animText.text = 'Animation: ' + character.jsonFile.animations[curAnim].anim + ' (' + (curAnim + 1) +' / ' + character.jsonFile.animations.length + ') - Press $buttonW or $buttonS to scroll';
+					animText.text = 'Animation: ' + character.jsonFile.animations[curAnim].anim + ' (' + (curAnim + 1) +' / ' + character.jsonFile.animations.length + ') - Press W or S to scroll';
 				}
 				lastTab = UI_mainbox.selected_tab_id;
 				currentGhosts = 0;
@@ -690,13 +668,11 @@ class DialogueCharacterEditorState extends MusicBeatState
 							}
 						}
 					}
-					final buttonW:String = controls.mobileC ? 'Up' : 'W';
-					final buttonS:String = controls.mobileC ? 'Down' : 'S';
-					animText.text = 'Animation: ' + character.jsonFile.animations[curAnim].anim + ' (' + (curAnim + 1) +' / ' + character.jsonFile.animations.length + ') - Press $buttonW or $buttonS to scroll';
+					animText.text = 'Animation: ' + character.jsonFile.animations[curAnim].anim + ' (' + (curAnim + 1) +' / ' + character.jsonFile.animations.length + ') - Press W or S to scroll';
 				}
 			}
 
-			if(#if android FlxG.android.justPressed.BACK || #end touchPad.buttonB.justPressed || FlxG.keys.justPressed.ESCAPE) {
+			if(FlxG.keys.justPressed.ESCAPE) {
 				MusicBeatState.switchState(new editors.MasterEditorMenu());
 				FlxG.sound.playMusic(Paths.music('freakyMenu'), 1);
 				transitioning = true;
@@ -791,15 +767,11 @@ class DialogueCharacterEditorState extends MusicBeatState
 			var splittedImage:Array<String> = imageInputText.text.trim().split('_');
 			var characterName:String = splittedImage[0].toLowerCase().replace(' ', '');
 
-			#if mobile
-			StorageUtil.saveContent(characterName /*GACHA HORROR REFERANCE!?!?!?!*/ + '.json', data);
-			#else
 			_file = new FileReference();
 			_file.addEventListener(Event.COMPLETE, onSaveComplete);
 			_file.addEventListener(Event.CANCEL, onSaveCancel);
 			_file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
 			_file.save(data, characterName + ".json");
-			#end
 		}
 	}
 

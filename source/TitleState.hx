@@ -1,6 +1,6 @@
 package;
 
-#if DISCORD_ALLOWED
+#if desktop
 import Discord.DiscordClient;
 import sys.thread.Thread;
 #end
@@ -102,7 +102,7 @@ class TitleState extends MusicBeatState
 		/*#if (polymod && !html5)
 		if (sys.FileSystem.exists('mods/')) {
 			var folders:Array<String> = [];
-			for (file in sys.Paths.readDirectory('mods/')) {
+			for (file in sys.FileSystem.readDirectory('mods/')) {
 				var path = haxe.io.Path.join(['mods/', file]);
 				if (sys.FileSystem.isDirectory(path)) {
 					folders.push(file);
@@ -190,7 +190,6 @@ class TitleState extends MusicBeatState
 			}
 			persistentUpdate = true;
 			persistentDraw = true;
-			mobile.MobileData.init();
 		}
 
 		if (FlxG.save.data.weekCompleted != null)
@@ -209,7 +208,7 @@ class TitleState extends MusicBeatState
 			FlxTransitionableState.skipNextTransOut = true;
 			MusicBeatState.switchState(new FlashingState());
 		} else {
-			#if DISCORD_ALLOWED
+			#if desktop
 			if (!DiscordClient.isInitialized)
 			{
 				DiscordClient.initialize();
@@ -337,7 +336,7 @@ class TitleState extends MusicBeatState
 		logoBl.shader = swagShader.shader;
 
 		titleText = new FlxSprite(titleJSON.startx, titleJSON.starty);
-		#if MODS_ALLOWED
+		#if (desktop && MODS_ALLOWED)
 		var path = "mods/" + Paths.currentModDirectory + "/images/titleEnter.png";
 		//trace(path, FileSystem.exists(path));
 		if (!FileSystem.exists(path)){
@@ -447,6 +446,7 @@ class TitleState extends MusicBeatState
 
 		var pressedEnter:Bool = FlxG.keys.justPressed.ENTER || controls.ACCEPT;
 
+		#if mobile
 		for (touch in FlxG.touches.list)
 		{
 			if (touch.justPressed)
@@ -454,6 +454,7 @@ class TitleState extends MusicBeatState
 				pressedEnter = true;
 			}
 		}
+		#end
 
 		var gamepad:FlxGamepad = FlxG.gamepads.lastActive;
 
