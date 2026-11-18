@@ -82,6 +82,10 @@ import mobile.TouchButton;
 import mobile.TouchPad;
 import mobile.input.MobileInputID;
 
+import modcharting.ModchartFuncs;
+import modcharting.NoteMovement;
+import modcharting.PlayfieldRenderer;
+  
 using StringTools;
 
 class PlayState extends MusicBeatState
@@ -340,7 +344,7 @@ class PlayState extends MusicBeatState
 	public var luaTouchPad:TouchPad;
 
 	override public function create()
-	{
+	{ 
 		//trace('Playback Rate: ' + playbackRate);
 		Paths.clearStoredMemory();
 
@@ -1082,8 +1086,13 @@ class PlayState extends MusicBeatState
 		timeBarBG.sprTracker = timeBar;
 
 		strumLineNotes = new FlxTypedGroup<StrumNote>();
-		add(strumLineNotes);
-		add(grpNoteSplashes);
+	    add(strumLineNotes);
+  	
+        playfieldRenderer = new PlayfieldRenderer(strumLineNotes, notes, this);
+        playfieldRenderer.cameras = [camHUD];
+       add(playfieldRenderer);
+       add(grpNoteSplashes);
+      
 
 		if(ClientPrefs.timeBarType == 'Song Name')
 		{
@@ -1395,9 +1404,12 @@ class PlayState extends MusicBeatState
 			FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
 			FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
 		}
-		callOnLuas('onCreatePost', []);
+		
+        ModchartFuncs.loadLuaFunctions(); //add this if you want lua functions in scripts
+        //being used in psych engine as an example
 
-		super.create();
+        callOnLuas('onCreatePost', []);
+        super.create();
 
 		cacheCountdown();
 		cachePopUpScore();
@@ -2221,6 +2233,8 @@ class PlayState extends MusicBeatState
 				setOnLuas('defaultOpponentStrumY' + i, opponentStrums.members[i].y);
 				//if(ClientPrefs.middleScroll) opponentStrums.members[i].visible = false;
 			}
+            
+			NoteMovement.getDefaultStrumPos(this);
 
 			startedCountdown = mobileControls.instance.visible = true;
 			Conductor.songPosition = -Conductor.crochet * 5;
