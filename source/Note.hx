@@ -137,6 +137,10 @@ class Note extends FlxSprite
 	public var changeAnim:Bool = true;
 	public var changeColSwap:Bool = true;
 	
+    //add these 2 variables for the renderer
+    public var mesh:modcharting.SustainStrip = null;
+    public var z:Float = 0;
+
 	public function resizeByRatio(ratio:Float) //haha funny twitter shit
 		{
 			if(isSustainNote && !animation.curAnim.name.endsWith('tail'))
