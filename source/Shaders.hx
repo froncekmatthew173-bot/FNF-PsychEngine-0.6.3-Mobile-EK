@@ -3,7 +3,6 @@ package;
 // STOLEN FROM HAXEFLIXEL DEMO LOL
 import flixel.system.FlxAssets.FlxShader;
 import openfl.display.BitmapData;
-import backend.FlxFixedShader;
 import openfl.display.ShaderInput;
 import flixel.FlxG;
 import openfl.Lib;
@@ -1324,7 +1323,7 @@ class DistortBGShader extends FlxShader
 }
 
 
-class PulseShader extends FlxFixedShader
+class PulseShader extends FlxShader
 {
     @:glFragmentSource('
     #pragma header
