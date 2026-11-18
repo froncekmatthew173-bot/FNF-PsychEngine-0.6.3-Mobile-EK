@@ -141,6 +141,11 @@
 	<!-- <haxelib name="hxcpp-debug-server" if="desktop"/> -->
 	<haxelib name="extension-androidtools" if="android" />
 
+    <!--Set this to the engine you're using!-->
+    <define name="PSYCH" />
+
+    <haxelib name="fnf-modcharting-tools" />
+		
 	<!-- <haxelib name="markdown" /> -->
 	<!-- <haxelib name="HtmlParser" /> -->
 
@@ -193,7 +198,6 @@
 	</section>
 
 	<haxedef name='no-deprecation-warnings' />
-
 	<!-- Do whatever you want I'm tired uninstall and install everytime -->
 	<certificate path="key.keystore" password="psychengine" alias="psychport" alias-password="psychengine" if="android" unless="debug" />
 
