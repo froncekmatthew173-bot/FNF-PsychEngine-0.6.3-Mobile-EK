@@ -20,7 +20,7 @@ import mobile.Hitbox;
 import mobile.TouchPad;
 import flixel.util.FlxDestroyUtil;
 
-class MusicBeatState extends FlxUIState
+class MusicBeatState extends modcharting.ModchartMusicBeatState
 {
 	private var curSection:Int = 0;
 	private var stepsToDo:Int = 0;
